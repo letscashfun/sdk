@@ -13,12 +13,24 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      # package.json claims `engines: node >=20`. Testing only on 20 makes that
+      # claim untested on every version anyone is actually likely to run, so
+      # every active line is exercised — 20 as the floor we promise, 24 as the
+      # current release.
+      matrix:
+        node: [20, 22, 24]
+
+    name: check (node ${{ matrix.node }})
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node }}
           cache: npm
 
       # `npm ci` installs exactly what the lockfile pins, and fails if
@@ -44,5 +56,7 @@ jobs:
 
       # The published tarball must contain what we think it does. Printing it
       # on every run makes an accidental inclusion — a .env, a key, a scratch
-      # file — visible in the log rather than on the registry.
-      - run: npm pack --dry-run
+      # file — visible in the log rather than on the registry. Once is enough;
+      # the contents do not vary by Node version.
+      - if: matrix.node == 20
+        run: npm pack --dry-run
