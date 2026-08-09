@@ -13,11 +13,14 @@ jobs:
 
     permissions:
       contents: read
-      # This is what makes provenance possible. GitHub mints a short-lived
-      # OIDC token, npm verifies it, and the published package carries a
-      # signed attestation naming the exact repo, workflow and commit it was
-      # built from. Anyone can then check that the tarball on the registry
-      # came from source they can read — rather than from someone's laptop.
+      # npm's trusted publishing works entirely through this. GitHub mints a
+      # short-lived OIDC token, npm checks it against the publisher it has on
+      # record for this package — this repository, this workflow file — and
+      # accepts the publish on that basis.
+      #
+      # There is no npm token anywhere in this repository. Nothing to leak,
+      # nothing to rotate, nothing to expire. It also sidesteps npm's 2FA
+      # requirement on writes, which a stored token cannot satisfy from CI.
       id-token: write
 
     steps:
@@ -28,6 +31,12 @@ jobs:
           node-version: 20
           cache: npm
           registry-url: https://registry.npmjs.org
+
+      # Node 20 ships npm 10, which predates trusted publishing. Without this
+      # the publish falls back to looking for a token and fails asking for a
+      # one-time password.
+      - name: Use an npm that supports trusted publishing
+        run: npm install -g npm@latest
 
       - run: npm ci
 
@@ -50,6 +59,7 @@ jobs:
             exit 1
           fi
 
+      # No NODE_AUTH_TOKEN. Provenance is attached automatically under trusted
+      # publishing, and the flag stays as an explicit assertion that a release
+      # without it should fail rather than publish silently unattested.
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

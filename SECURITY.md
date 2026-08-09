@@ -67,8 +67,9 @@ verify the tarball came from a specific public commit:
 npm audit signatures
 ```
 
-Nobody publishes from a laptop, so a compromised developer machine cannot ship
-a release.
+Publishing uses npm trusted publishing, so no credential is stored in this
+repository at all. A compromised developer machine cannot ship a release,
+and there is no token to leak or rotate.
 
 **Source is shipped.** The `src/` directory is in the published tarball, not
 just the built output. You can read what you installed without cloning
