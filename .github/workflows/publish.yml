@@ -1,0 +1,55 @@
+name: Publish
+
+# Fires only on a version tag. Publishing is never a side effect of a merge —
+# a release is a deliberate act, and `git tag v0.1.0 && git push --tags` is the
+# whole ceremony.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # This is what makes provenance possible. GitHub mints a short-lived
+      # OIDC token, npm verifies it, and the published package carries a
+      # signed attestation naming the exact repo, workflow and commit it was
+      # built from. Anyone can then check that the tarball on the registry
+      # came from source they can read — rather than from someone's laptop.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      # Everything again, from a clean checkout. prepublishOnly repeats some of
+      # this, but a failure here stops the release before the registry is
+      # touched — and a published version cannot be unpublished after 72 hours.
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=low
+
+      # The tag and package.json must agree. Publishing 0.1.0 from a v0.2.0 tag
+      # produces a release nobody can trace back to a commit.
+      - name: Check the tag matches the version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p 'require("./package.json").version')"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG does not match package.json version $PKG" >&2
+            exit 1
+          fi
+
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

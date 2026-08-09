@@ -1,0 +1,89 @@
+{
+  "name": "@letscashfun/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the letscash.fun launchpad \u2014 launch tokens, read and claim fee streams, and trade, on Robinhood Chain",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "homepage": "https://letscash.fun",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/letscashfun/sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/letscashfun/sdk/issues"
+  },
+  "keywords": [
+    "letscash",
+    "launchpad",
+    "uniswap-v4",
+    "uniswap",
+    "hooks",
+    "robinhood-chain",
+    "defi",
+    "ethereum",
+    "viem"
+  ],
+  "files": [
+    "src",
+    "dist",
+    "abis",
+    "solidity",
+    "README.md",
+    "COOKBOOK.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./abis": {
+      "types": "./dist/abis.d.ts",
+      "import": "./dist/abis.js",
+      "require": "./dist/abis.cjs"
+    },
+    "./abis/json/*.json": "./abis/*.json",
+    "./solidity/*.sol": "./solidity/*.sol",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run test/pool.test.ts test/solidity-interfaces.test.ts",
+    "test:e2e": "vitest run test/e2e",
+    "test:watch": "vitest",
+    "anvil": "anvil --fork-url https://rpc.mainnet.chain.robinhood.com --port 8545",
+    "sync:abis": "tsx scripts/sync-abis.ts",
+    "prepublishOnly": "npm run typecheck && npm run test:unit && npm run build"
+  },
+  "peerDependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "esbuild": "^0.28.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "viem": "^2.21.0",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "esbuild": "^0.28.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
