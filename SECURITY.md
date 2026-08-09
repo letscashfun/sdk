@@ -68,8 +68,12 @@ npm audit signatures
 ```
 
 Publishing uses npm trusted publishing, so no credential is stored in this
-repository at all. A compromised developer machine cannot ship a release,
-and there is no token to leak or rotate.
+repository at all. A compromised developer machine cannot ship a release, and
+there is no token to leak or rotate.
+
+`0.1.0` is the one exception: it was published by hand to create the package,
+before a trusted publisher could be registered against it, and therefore
+carries no attestation. Every release from `0.1.1` onwards is attested.
 
 **Source is shipped.** The `src/` directory is in the published tarball, not
 just the built output. You can read what you installed without cloning
