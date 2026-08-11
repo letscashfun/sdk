@@ -1,6 +1,6 @@
 {
   "name": "@letscashfun/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript SDK for the letscash.fun launchpad — launch tokens, read and claim fee streams, and trade, on Robinhood Chain",
   "license": "MIT",
   "type": "module",
