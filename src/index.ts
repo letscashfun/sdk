@@ -19,7 +19,7 @@
  * });
  *
  * // Launch, fees to the launching account
- * const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1 });
+ * const config = await client.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 1_000_000_000 });
  * const { token, poolId } = await client.launch({
  *   configId: config.id,
  *   name: "My Coin",

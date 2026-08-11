@@ -60,7 +60,7 @@
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:unit": "vitest run test/pool.test.ts test/solidity-interfaces.test.ts",
+    "test:unit": "vitest run --exclude 'test/e2e/**'",
     "test:e2e": "vitest run test/e2e",
     "test:watch": "vitest",
     "anvil": "anvil --fork-url https://rpc.mainnet.chain.robinhood.com --port 8545",

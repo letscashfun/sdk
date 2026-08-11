@@ -511,7 +511,7 @@ function parseLaunchLogs(
  *
  * @example An ether launch, fees to the launcher
  * ```ts
- * const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1 });
+ * const config = await client.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 1_000_000_000 });
  * const result = await launchToken(client.context, {
  *   configId: config.id,
  *   name: "My Coin",

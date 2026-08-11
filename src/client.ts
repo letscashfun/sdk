@@ -223,6 +223,59 @@ export class LetscashClient {
   }
 
   /**
+   * The one row matching a filter, or an error saying why there isn't one.
+   *
+   * `const [config] = await getConfigs(...)` is the natural way to pick a row
+   * and the wrong one: it takes whichever matched first and says nothing when
+   * several did. That was harmless while every quote and fee tier named exactly
+   * one row, and stops being harmless the moment a second supply is published —
+   * the same filter then matches two, and the launch quietly gets whichever was
+   * published earlier.
+   *
+   * This refuses instead, and the error names the rows it could not choose
+   * between, so the fix is visible from the message.
+   *
+   * @example
+   * ```ts
+   * const config = await client.selectConfig({
+   *   quote: "ETH",
+   *   feePercent: 1,
+   *   supplyTokens: 10_000_000_000,
+   * });
+   * ```
+   *
+   * @throws {InvalidArgumentError} If no row matches, or more than one does.
+   */
+  async selectConfig(filter: ConfigFilter = {}): Promise<LaunchConfig> {
+    const matches = await this.getConfigs(filter);
+    const described = JSON.stringify(filter);
+
+    if (matches.length === 1) return matches[0]!;
+
+    if (matches.length === 0) {
+      const enabled = await this.getConfigs({});
+      throw new InvalidArgumentError(
+        `No enabled launch config matches ${described}. ` +
+          `${enabled.length} rows are launchable right now: ` +
+          `${enabled.map((c) => `#${c.id} ${c.quote.symbol} ${c.feePercent}% ${c.supplyTokens.toLocaleString("en-US")}${c.selfBurn ? " self-burn" : ""}`).join(", ")}.`,
+      );
+    }
+
+    // The fields that actually differ are the ones worth naming, since those
+    // are what the caller has to add to the filter to resolve it.
+    const differing = (["supplyTokens", "feePercent", "selfBurn"] as const).filter(
+      (key) => new Set(matches.map((c) => c[key])).size > 1,
+    );
+    throw new InvalidArgumentError(
+      `${matches.length} launch configs match ${described}, so this cannot pick one: ` +
+        `${matches.map((c) => `#${c.id} (${c.supplyTokens.toLocaleString("en-US")} supply, ${c.feePercent}%)`).join(", ")}. ` +
+        (differing.length > 0
+          ? `Add ${differing.map((k) => `\`${k}\``).join(" or ")} to the filter.`
+          : `Pass the id to \`getConfig\` instead.`),
+    );
+  }
+
+  /**
    * Every published row, enabled or not.
    *
    * `getConfigs()` hides disabled rows, and there is no filter value that
@@ -325,7 +378,7 @@ export class LetscashClient {
    *
    * @example
    * ```ts
-   * const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1 });
+   * const config = await client.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 1_000_000_000 });
    * const { token, poolId } = await client.launch({
    *   configId: config.id,
    *   name: "My Coin",

@@ -68,10 +68,10 @@ for (const c of await client.getConfigs()) {
 
 ```ts
 // ETH, 1%, creator keeps the fees
-const [ethOne] = await client.getConfigs({ quote: "ETH", feePercent: 1, selfBurn: false });
+const ethOne = await client.selectConfig({ quote: "ETH", feePercent: 1, selfBurn: false, supplyTokens: 1_000_000_000 });
 
 // USDG, 5%
-const [usdgFive] = await client.getConfigs({ quote: "USDG", feePercent: 5 });
+const usdgFive = await client.selectConfig({ quote: "USDG", feePercent: 5, supplyTokens: 1_000_000_000 });
 
 // Any self-burn config
 const burners = await client.getConfigs({ selfBurn: true });
@@ -399,7 +399,7 @@ and the token would render blank, permanently.
 Fees go to the launching account.
 
 ```ts
-const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1 });
+const config = await client.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 1_000_000_000 });
 
 const { token, poolId } = await client.launch({
   configId: config.id,
@@ -435,7 +435,7 @@ const { token } = await client.launch({
 Buys your own token in the same transaction. On an ether config this rides along in `value`; the SDK works that out.
 
 ```ts
-const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1 });
+const config = await client.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 1_000_000_000 });
 
 const result = await client.launch({
   configId: config.id,
@@ -452,7 +452,7 @@ console.log(`got ${result.firstBuyOut} base units`);
 Identical call. The SDK notices the quote is an ERC-20, signs an EIP-2612 permit, and routes to `launchWithPermit` so it stays **one transaction** with no separate approval.
 
 ```ts
-const [config] = await client.getConfigs({ quote: "USDG", feePercent: 3 });
+const config = await client.selectConfig({ quote: "USDG", feePercent: 3, supplyTokens: 1_000_000_000 });
 
 await client.launch({
   configId: config.id,
@@ -537,7 +537,7 @@ await client.launch({
 The creator's share buys the token and burns it. There are no creator earnings, so `feeRecipients` is rejected on these configs.
 
 ```ts
-const [burnConfig] = await client.getConfigs({ quote: "ETH", selfBurn: true });
+const burnConfig = await client.selectConfig({ quote: "ETH", selfBurn: true, feePercent: 1, supplyTokens: 1_000_000_000 });
 
 await client.launch({
   configId: burnConfig.id,

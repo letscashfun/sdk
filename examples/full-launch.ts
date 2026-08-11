@@ -63,7 +63,14 @@ for (const c of await client.getConfigs()) {
 
 // ETH-quoted, 1% fee, creator keeps the stream. Swap the filter for what you
 // want: { quote: "USDG", feePercent: 5 }, { selfBurn: true }, and so on.
-const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1, selfBurn: false });
+const config = await client.selectConfig({
+  quote: "ETH",
+  feePercent: 1,
+  selfBurn: false,
+  // Named explicitly: more than one supply can be published per tier, and
+  // selectConfig refuses to guess between them.
+  supplyTokens: 1_000_000_000,
+});
 if (!config) throw new Error("no enabled ETH 1% config");
 
 console.log(`\nusing config ${config.id} — ${config.feePercent}% fee, you keep ${config.creatorPercentOfVolume}%`);

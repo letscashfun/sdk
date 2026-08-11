@@ -41,7 +41,12 @@ for (const config of await client.getConfigs()) {
 // ─────────────────────── 1. the simple case ───────────────────────
 // Fees go to the launching account.
 
-const [oneEth] = await client.getConfigs({ quote: "ETH", feePercent: 1, selfBurn: false });
+const oneEth = await client.selectConfig({
+  quote: "ETH",
+  feePercent: 1,
+  selfBurn: false,
+  supplyTokens: 1_000_000_000,
+});
 if (!oneEth) throw new Error("no enabled ETH 1% config");
 
 const simple = await client.launch({

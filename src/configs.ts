@@ -133,6 +133,17 @@ export interface ConfigFilter {
   selfBurn?: boolean;
   /** Only rows whose total fee matches, as a percentage. */
   feePercent?: number;
+  /**
+   * Only rows minting this many whole tokens, e.g. `1_000_000_000`.
+   *
+   * Name it whenever more than one supply is published for the same quote and
+   * fee tier, because the rest of this filter cannot tell those rows apart. A
+   * filter that matches two rows is not an error — `getConfigs` returns both,
+   * in ascending id order — but taking `[0]` from it silently picks whichever
+   * was published first. Use {@link LetscashClient.selectConfig} to be told
+   * about the ambiguity instead of quietly resolving it.
+   */
+  supplyTokens?: number;
 }
 
 /** Applies a {@link ConfigFilter}. Exported so callers can reuse the semantics. */
@@ -140,6 +151,11 @@ export function matchesFilter(config: LaunchConfig, filter: ConfigFilter): boole
   if ((filter.enabled ?? true) !== config.enabled) return false;
   if (filter.selfBurn !== undefined && filter.selfBurn !== config.selfBurn) return false;
   if (filter.feePercent !== undefined && filter.feePercent !== config.feePercent) return false;
+  // Exact equality is safe: supplyTokens is a whole number of tokens derived by
+  // integer division, not a float like the percentage fields.
+  if (filter.supplyTokens !== undefined && filter.supplyTokens !== config.supplyTokens) {
+    return false;
+  }
   if (filter.quote !== undefined) {
     const wanted = filter.quote.toLowerCase();
     const matches =

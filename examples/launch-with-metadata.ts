@@ -29,7 +29,12 @@ const client = new LetscashClient({
   walletClient: createWalletClient({ account, chain: robinhoodChain, transport: http(rpc) }),
 });
 
-const [config] = await client.getConfigs({ quote: "ETH", feePercent: 1, selfBurn: false });
+const config = await client.selectConfig({
+  quote: "ETH",
+  feePercent: 1,
+  selfBurn: false,
+  supplyTokens: 1_000_000_000,
+});
 if (!config) throw new Error("no enabled ETH 1% config");
 
 const result = await client.launchWithMetadata({

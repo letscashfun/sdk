@@ -56,6 +56,38 @@ describe.skipIf(!anvilUp)("end to end against an anvil fork", () => {
   });
 
   describe("the launch menu", () => {
+    it("selectConfig resolves against the live menu, naming the supply or not", async () => {
+      // Today every quote-and-tier names exactly one row, so both forms work.
+      // Once a second supply is published the unnamed form starts throwing,
+      // which is the entire point — it fails loudly rather than picking one.
+      const named = await readClient.selectConfig({
+        quote: "ETH",
+        feePercent: 1,
+        selfBurn: false,
+        supplyTokens: 1_000_000_000,
+      });
+      const unnamed = await readClient.selectConfig({
+        quote: "ETH",
+        feePercent: 1,
+        selfBurn: false,
+      });
+      expect(named.id).toBe(unnamed.id);
+      expect(named.supplyTokens).toBe(1_000_000_000);
+    });
+
+    it("selectConfig refuses a filter nothing matches, and says what is live", async () => {
+      await expect(
+        readClient.selectConfig({ quote: "ETH", feePercent: 1, supplyTokens: 10_000_000_000 }),
+      ).rejects.toThrow(/No enabled launch config matches/);
+    });
+
+    it("every live row is one billion, so the supply filter is a no-op today", async () => {
+      // Pins the precondition the rollout assumes. When this starts failing,
+      // the 10B rows have landed and the ambiguity is live.
+      const all = await readClient.getAllConfigs();
+      expect(all.every((c) => c.supplyTokens === 1_000_000_000)).toBe(true);
+    });
+
     it("reads published rows and separates enabled from disabled", async () => {
       const all = await readClient.getAllConfigs();
 

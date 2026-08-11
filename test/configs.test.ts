@@ -125,6 +125,27 @@ describe("matchesFilter", () => {
     expect(matchesFilter(usdgFive, { feePercent: 1 })).toBe(false);
   });
 
+  it("tells two supplies apart at the same quote and fee tier", () => {
+    // The case this filter exists for: once a 10B row is published alongside
+    // the 1B one, every other field on them is identical, so nothing else in
+    // the filter can separate them.
+    const oneBillion = deriveConfig(1000, raw(), ETHER);
+    const tenBillion = deriveConfig(
+      1016,
+      raw({ supply: 10_000_000_000n * 10n ** 18n, startTick: 227_200 }),
+      ETHER,
+    );
+
+    const shared = { quote: "ETH", feePercent: 1, selfBurn: false } as const;
+    expect(matchesFilter(oneBillion, shared)).toBe(true);
+    expect(matchesFilter(tenBillion, shared)).toBe(true);
+
+    expect(matchesFilter(oneBillion, { ...shared, supplyTokens: 1_000_000_000 })).toBe(true);
+    expect(matchesFilter(tenBillion, { ...shared, supplyTokens: 1_000_000_000 })).toBe(false);
+    expect(matchesFilter(tenBillion, { ...shared, supplyTokens: 10_000_000_000 })).toBe(true);
+    expect(matchesFilter(oneBillion, { ...shared, supplyTokens: 10_000_000_000 })).toBe(false);
+  });
+
   it("combines filters with AND", () => {
     expect(matchesFilter(usdgFive, { quote: "USDG", feePercent: 5, selfBurn: false })).toBe(true);
     expect(matchesFilter(usdgFive, { quote: "USDG", feePercent: 1 })).toBe(false);
